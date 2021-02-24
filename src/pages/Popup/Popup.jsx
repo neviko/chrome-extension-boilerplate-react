@@ -1,26 +1,76 @@
-import React from 'react';
-import logo from '../../assets/img/logo.svg';
-import Greetings from '../../containers/Greetings/Greetings';
-import './Popup.css';
+import React, { useEffect, useState } from 'react';
 
+
+let streamRef = null
 const Popup = () => {
+
+  // const [stream, setStream] = useState(null)
+  useEffect(() => {
+    // constructor
+    // setupStream()
+    return () => {
+    }
+  }, [])
+
+
+
+
+
+  const requestCreateStream = _ => {
+    navigator.mediaDevices.getUserMedia({
+      video: true
+    })
+      .then(stream => {
+        debugger
+        streamRef = stream
+        console.log('stream is on in popup:', stream);
+        document.querySelector('#webcamVideo').srcObject = stream;
+
+      })
+      .catch(err => {
+        console.error(err);
+      });
+
+
+    chrome.runtime.sendMessage({ type: 'start-stream' },
+      (response) => {
+
+        // document.querySelector('#webcamVideo').srcObject = response.stream;
+        console.log('content type response', response.response)
+        return true
+      })
+  }
+
+  const requestDestroyStream = _ => {
+    streamRef.getTracks().forEach(function (track) {
+      if (track.readyState === 'live' && track.kind === 'video') {
+          track.stop();
+      }
+    })
+    chrome.runtime.sendMessage({ type: 'stop-stream' },
+      (response) => {
+        console.log('content type response', response.response)
+        return true
+      })
+  }
+
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/pages/Popup/Popup.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <div>
+        in the popup
+      </div>
+      <div className="buttons-container">
+        <button id="openStream" onClick={requestCreateStream} >Open stream </button>
+        <button id="closeStream" onClick={requestDestroyStream} >Close stream</button>
+      </div>
+      <div>
+        <video autoPlay={true} id="webcamVideo" width="227px" height="227px"></video>
+      </div>
     </div>
+
+
   );
 };
 

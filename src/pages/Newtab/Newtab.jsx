@@ -1,26 +1,44 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import logo from '../../assets/img/logo.svg';
 import './Newtab.css';
 import './Newtab.scss';
 
 const Newtab = () => {
+
+  const setupStream = async _ => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      stopStream(stream)
+      chrome.storage.local.set({
+        'camAccess': true
+      }, () => { });
+    }
+
+    catch (err) {
+      console.error('error while setupStream', err);
+    }
+  }
+
+  const stopStream = (stream) => {
+    stream.getTracks().forEach(function (track) {
+      if (track.kind === 'video') {
+        track.stop();
+      }
+    });
+  }
+
+  useEffect(() => {
+    console.log('inside newTab ctor')
+    setupStream()
+
+    return () => {
+
+    }
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/pages/Newtab/Newtab.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <h6>The color of this paragraph is defined using SASS.</h6>
-      </header>
+    <div>
+      Please grant the Camera permission
     </div>
   );
 };
