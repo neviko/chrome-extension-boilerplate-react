@@ -1,22 +1,16 @@
-import '../../assets/img/icon-34.png';
-import '../../assets/img/icon-128.png';
-import ml5 from 'ml5'
-
+import '../../assets/img/icon-34.png'
+import '../../assets/img/icon-128.png'
+import { initPoseLibrary, getFramePoses } from '../../containers/PoseLibrary/PoseLibrary'
+import { getStream } from '../../containers/streamHelper/StreamHelper'
 console.log('This is the background page.')
 
 
-let poseNet = null
 let videoElm = null
 let poseNetInterval = null
 let streamRef = null
+let poseLib = null
 
-const poseNet_options = {
-    input_resolution: 720,
-    outputStride: 16,
-    maxPoseDetections: 2,
-    multiplier: 0.50,
-    detectionType: 'multiple'
-}
+
 
 const isCameraPermissionGranted = _ => {
     try {
@@ -52,18 +46,16 @@ const openNewTab = _ => {
 }
 
 const setupStream = async _ => {
-    navigator.mediaDevices.getUserMedia({
-        video: true
-    }).then(stream => {
+    try {
+        const stream = await getStream()
         streamRef = stream
         console.log('stream is:', stream);
-        videoElm = document.querySelector('#webcamVideoBg')
         videoElm.srcObject = stream;
+    }
 
-    })
-        .catch(err => {
-            console.error(err);
-        });
+    catch (err) {
+        console.error(err);
+    }
 }
 
 const stopVideoOnly = () => {
@@ -76,17 +68,11 @@ const stopVideoOnly = () => {
 
 const startReceivingPoses = _ => {
 
-    if (!streamRef) {
-        return
-    }
     poseNetInterval = setInterval(async () => {
         try {
-            const poses = await poseNet.multiPose(videoElm)
-            chrome.runtime.sendMessage({ type: 'posenet-state',  data: poses},
-            (response) => {
-                console.log('content type response', response.response)
-                return true
-            })
+            const poses = await getFramePoses()
+            console.log(poses)
+            chrome.runtime.sendMessage({ type: 'posenet-score', data: poses })
             console.log('results is:', poses);
         }
 
@@ -101,15 +87,14 @@ const stopReceivingPoses = _ => {
     clearInterval(poseNetInterval)
 }
 
-const setupPosesLibrary = _ => {
-    poseNet = ml5.poseNet(startReceivingPoses.bind(this), poseNet_options)
-}
+
 
 const setupListeners = _ => {
     chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         switch (message.type) {
             case 'start-stream':
                 await setupStream()
+                initPoseLibrary({ videoElm: videoElm })
                 startReceivingPoses()
                 sendResponse({ stream: streamRef, response: 'stream-started' })
                 break
@@ -132,7 +117,7 @@ const setupListeners = _ => {
 
 const init = _ => {
     setupListeners()
-    setupPosesLibrary()
+    videoElm = document.querySelector('#webcamVideoBg')
     if (!isCameraPermissionGranted()) {
         openNewTab()
     }
