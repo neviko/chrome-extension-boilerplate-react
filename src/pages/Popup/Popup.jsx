@@ -7,17 +7,17 @@ const Popup = () => {
   const [curPose, setCurPose] = useState("Default");
   const setupListeners = _ => {
     chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-        switch (message.type) {
-            case 'posenet-state':
-                setCurPose(message.data[0].pose.score)
-                console.log("result from background : ", message.data)
-                sendResponse({ response: 'get-result' })
-                break;
-            default:
-              break;
-        }
-        return true
-  
+      switch (message.type) {
+        case 'posenet-score':
+          setCurPose(message.data[0].pose.score)
+          console.log("result from background : ", message.data)
+          sendResponse({ response: 'get-result' })
+          break;
+        default:
+          break;
+      }
+      return true
+
     })
   }
   setupListeners()
@@ -61,7 +61,7 @@ const Popup = () => {
   const requestDestroyStream = _ => {
     streamRef.getTracks().forEach(function (track) {
       if (track.readyState === 'live' && track.kind === 'video') {
-          track.stop();
+        track.stop();
       }
     })
     chrome.runtime.sendMessage({ type: 'stop-stream' },
@@ -70,7 +70,7 @@ const Popup = () => {
         return true
       })
   }
-  
+
 
 
   return (
