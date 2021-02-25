@@ -38,7 +38,6 @@ const Popup = () => {
       video: true
     })
       .then(stream => {
-        debugger
         streamRef = stream
         console.log('stream is on in popup:', stream);
         document.querySelector('#webcamVideo').srcObject = stream;
