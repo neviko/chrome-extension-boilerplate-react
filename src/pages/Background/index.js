@@ -1,7 +1,7 @@
 import '../../assets/img/icon-34.png'
 import '../../assets/img/icon-128.png'
 import { initPoseLibrary, getFramePoses } from '../../containers/PoseLibrary/PoseLibrary'
-
+import { getStream } from '../../containers/streamHelper/StreamHelper'
 console.log('This is the background page.')
 
 
@@ -46,17 +46,16 @@ const openNewTab = _ => {
 }
 
 const setupStream = async _ => {
-    navigator.mediaDevices.getUserMedia({
-        video: true
-    }).then(stream => {
+    try {
+        const stream = await getStream()
         streamRef = stream
         console.log('stream is:', stream);
         videoElm.srcObject = stream;
+    }
 
-    })
-        .catch(err => {
-            console.error(err);
-        });
+    catch (err) {
+        console.error(err);
+    }
 }
 
 const stopVideoOnly = () => {

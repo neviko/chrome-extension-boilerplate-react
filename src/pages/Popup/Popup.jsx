@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getStream } from '../../containers/streamHelper/StreamHelper';
 
 
 let streamRef = null
@@ -33,28 +34,25 @@ const Popup = () => {
 
 
 
-  const requestCreateStream = _ => {
-    navigator.mediaDevices.getUserMedia({
-      video: true
-    })
-      .then(stream => {
-        streamRef = stream
-        console.log('stream is on in popup:', stream);
-        document.querySelector('#webcamVideo').srcObject = stream;
+  const requestCreateStream = async _ => {
 
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    try {
+      const stream = await getStream()
+      streamRef = stream
+      console.log('stream is on in popup:', stream)
+      document.querySelector('#webcamVideo').srcObject = stream
 
+      chrome.runtime.sendMessage({ type: 'start-stream' },
+        (response) => {
+          console.log('content type response', response.response)
+          return true
+        })
+    }
 
-    chrome.runtime.sendMessage({ type: 'start-stream' },
-      (response) => {
+    catch (err) {
+      console.error(err);
 
-        // document.querySelector('#webcamVideo').srcObject = response.stream;
-        console.log('content type response', response.response)
-        return true
-      })
+    }
   }
 
   const requestDestroyStream = _ => {

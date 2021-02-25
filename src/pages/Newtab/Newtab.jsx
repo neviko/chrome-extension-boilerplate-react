@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
-import logo from '../../assets/img/logo.svg';
-import './Newtab.css';
-import './Newtab.scss';
+import React, { useEffect } from 'react'
+import logo from '../../assets/img/logo.svg'
+import './Newtab.css'
+import './Newtab.scss'
+import { getStream } from '../../containers/streamHelper/StreamHelper';
 
 const Newtab = () => {
 
   const setupStream = async _ => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      const stream = await getStream()
       stopStream(stream)
       chrome.storage.local.set({
         'camAccess': true
