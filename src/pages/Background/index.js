@@ -1,14 +1,13 @@
 import '../../assets/img/icon-34.png'
 import '../../assets/img/icon-128.png'
 import { initPoseLibrary, getFramePoses } from '../../containers/PoseLibrary/PoseLibrary'
-import { getStream } from '../../containers/streamHelper/StreamHelper'
+import { getStream, stopStream } from '../../containers/streamHelper/StreamHelper'
 console.log('This is the background page.')
 
 
 let videoElm = null
 let poseNetInterval = null
 let streamRef = null
-let poseLib = null
 
 
 
@@ -59,11 +58,7 @@ const setupStream = async _ => {
 }
 
 const stopVideoOnly = () => {
-    streamRef.getTracks().forEach(function (track) {
-        if (track.kind === 'video') {
-            track.stop();
-        }
-    });
+    stopStream(streamRef)
 }
 
 const startReceivingPoses = _ => {

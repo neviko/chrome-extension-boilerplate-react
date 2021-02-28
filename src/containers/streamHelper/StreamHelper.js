@@ -13,3 +13,12 @@ export const getStream = async _ => {
         return null
     }
 }
+
+
+export const stopStream = streamRef => {
+    streamRef.getTracks().forEach(function (track) {
+        if (track.kind === 'video') {
+            track.stop();
+        }
+    });
+}
