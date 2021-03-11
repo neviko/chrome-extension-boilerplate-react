@@ -1,35 +1,24 @@
 import '../../assets/img/icon-34.png'
 import '../../assets/img/icon-128.png'
 import { initPoseLibrary, getFramePoses } from '../../containers/PoseLibrary/PoseLibrary'
-import { getStream } from '../../containers/streamHelper/StreamHelper'
+import {
+    getStream,
+    stopStream,
+    isCameraPermissionGranted
+} from '../../containers/streamHelper/StreamHelper'
+
 console.log('This is the background page.')
-
-
 let videoElm = null
 let poseNetInterval = null
 let streamRef = null
-let poseLib = null
 
 
+// myAudio.crossOrigin = "anonymous"
+// setTimeout(() => {
+// myAudio.play()
+// }, 2000);
 
-const isCameraPermissionGranted = _ => {
-    try {
-        chrome.storage.local.get('camAccess', items => {
-            if (!!items['camAccess']) {
-                console.log('cam access already exists');
-                return true
-            }
-            else {
-                console.log("new tab open")
-                return false
-            }
-        });
-    }
-    catch (err) {
-        console.log('error while getting data from storage: camAccess', err)
-        return null
-    }
-}
+
 
 const openNewTab = _ => {
 
@@ -47,6 +36,9 @@ const openNewTab = _ => {
 
 const setupStream = async _ => {
     try {
+        if (streamRef) {
+            return
+        }
         const stream = await getStream()
         streamRef = stream
         console.log('stream is:', stream);
@@ -59,19 +51,26 @@ const setupStream = async _ => {
 }
 
 const stopVideoOnly = () => {
-    streamRef.getTracks().forEach(function (track) {
-        if (track.kind === 'video') {
-            track.stop();
-        }
-    });
+    if (!streamRef) {
+        return
+    }
+    stopStream(streamRef)
+    streamRef = null
 }
 
 const startReceivingPoses = _ => {
 
+    const src = chrome.runtime.getURL('beep.wav')
+    const myAudio = document.querySelector('audio')// new Audio(src)
+    myAudio.crossOrigin = 'anonymous';
+    myAudio.loop = true;
+    myAudio.src = src
+    myAudio.play()
     poseNetInterval = setInterval(async () => {
         try {
             const poses = await getFramePoses()
             console.log(poses)
+
             chrome.runtime.sendMessage({ type: 'posenet-score', data: poses })
             console.log('results is:', poses);
         }
@@ -79,7 +78,7 @@ const startReceivingPoses = _ => {
         catch (err) {
             console.log('error while getting poses', err);
         }
-    }, 1000);
+    }, 250);
 
 }
 
