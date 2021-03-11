@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getStream } from '../../containers/streamHelper/StreamHelper';
 
 
@@ -6,13 +6,26 @@ let streamRef = null
 
 const Popup = () => {
   const [curPose, setCurPose] = useState("Default");
+
+  useEffect(() => {
+    // console.log('popup opened')
+    // console.log('audioRef.current is:', audioRef.current)
+    const audio = new Audio(chrome.runtime.getURL('beep.wav'))
+    audio.crossOrigin = 'anonymous';
+    audio.loop = true;
+    audio.play()
+    return () => {
+
+    }
+  }, [])
+
   const setupListeners = _ => {
-    chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       switch (message.type) {
         case 'posenet-score':
           setCurPose(message.data[0].pose.score)
-          console.log("result from background : ", message.data)
-          sendResponse({ response: 'get-result' })
+          console.log("result from background : ", message.data[0])
+          // sendResponse({ response: 'get-result' })
           break;
         default:
           break;
@@ -23,12 +36,7 @@ const Popup = () => {
   }
   setupListeners()
   // const [stream, setStream] = useState(null)
-  useEffect(() => {
-    // constructor
-    // setupStream()
-    return () => {
-    }
-  }, [])
+
 
 
 
@@ -37,10 +45,10 @@ const Popup = () => {
   const requestCreateStream = async _ => {
 
     try {
-      const stream = await getStream()
-      streamRef = stream
-      console.log('stream is on in popup:', stream)
-      document.querySelector('#webcamVideo').srcObject = stream
+      // const stream = await getStream()
+      // streamRef = stream
+      // console.log('stream is on in popup:', stream)
+      // document.querySelector('#webcamVideo').srcObject = stream
 
       chrome.runtime.sendMessage({ type: 'start-stream' },
         (response) => {
@@ -56,11 +64,11 @@ const Popup = () => {
   }
 
   const requestDestroyStream = _ => {
-    streamRef.getTracks().forEach(function (track) {
-      if (track.readyState === 'live' && track.kind === 'video') {
-        track.stop();
-      }
-    })
+    // streamRef.getTracks().forEach(function (track) {
+    //   if (track.readyState === 'live' && track.kind === 'video') {
+    //     track.stop();
+    //   }
+    // })
     chrome.runtime.sendMessage({ type: 'stop-stream' },
       (response) => {
         console.log('content type response', response.response)
@@ -75,13 +83,14 @@ const Popup = () => {
       <div>
         in the popup
       </div>
+      {/* <audio ref={audioRef} ></audio> */}
       <div className="buttons-container">
         <button id="openStream" onClick={requestCreateStream} >Open stream </button>
         <button id="closeStream" onClick={requestDestroyStream} >Close stream</button>
       </div>
-      <div>
+      {/* <div>
         <video autoPlay={true} id="webcamVideo" width="227px" height="227px"></video>
-      </div>
+      </div> */}
       <div>
         {curPose}
       </div>
