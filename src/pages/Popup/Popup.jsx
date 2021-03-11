@@ -87,6 +87,11 @@ const Popup = () => {
       <div className="buttons-container">
         <button id="openStream" onClick={requestCreateStream} >Open stream </button>
         <button id="closeStream" onClick={requestDestroyStream} >Close stream</button>
+        <div>
+        <button id="calibrate" onClick={()=>{}} >Calibrate</button>
+        </div>
+        <div> Posture State </div> 
+
       </div>
       {/* <div>
         <video autoPlay={true} id="webcamVideo" width="227px" height="227px"></video>
